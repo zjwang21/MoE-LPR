@@ -102,7 +102,7 @@ class MoeArguments:
         metadata={"help": "num heads"}
     )
     aux_loss_coef: Optional[float] = field(
-        default=0.01,
+        default=None,
         metadata={"help": "num heads"}
     )
     lpr_loss_coef: Optional[float] = field(

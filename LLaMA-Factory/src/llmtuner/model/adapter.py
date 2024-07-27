@@ -34,6 +34,7 @@ def init_adapter(
             logger.info("Resume training from moe adapter: {}.".format(model_args.adapter_name_or_path[0]))
             moe_config = PeftConfig.from_pretrained(model_args.adapter_name_or_path[0])
             moe_config.lpr_loss_coef=finetuning_args.lpr_loss_coef
+            moe_config.aux_loss_coef=finetuning_args.aux_loss_coef
             model = PeftModel.from_pretrained(model, 
                                               model_id=model_args.adapter_name_or_path[0], 
                                               config=moe_config, 
@@ -55,7 +56,7 @@ def init_adapter(
                     layers_to_transform=layers,
                     save_all_params=finetuning_args.save_all_params,
                     aux_loss_coef=finetuning_args.aux_loss_coef,
-                    lpr_loss_coef=finetuning_args.lpr_loss_coef
+                    lpr_loss_coef=finetuning_args.lpr_loss_coef,
                 )
                 model = get_peft_model(model, moe_config)
                 
