@@ -1,4 +1,4 @@
-name: moe
+name: moelpr
 channels:
   - conda-forge
   - defaults

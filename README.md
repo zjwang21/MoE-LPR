@@ -6,14 +6,14 @@ This repository contains the code for our paper [Enhancing Multilingual Capabili
 - [Enhancing Multilingual Capability for Large Language Models through Mixture-of-Experts with Language Priors Router](#enhancing-multilingual-capability-for-large-language-models-through-mixture-of-experts-with-language-priors-router)
 - [Quick Links](#quick-links)
 - [Overview](#overview)
-  - [Stage 1: Upcycling for Post-pretraining](#stage-1:-upcycling-for-post-pretraining)
-  - [Stage 2: Language Priors Router](#stage-2:-language-priors-router)
+  - [Stage 1: Upcycling for Post-pretraining](#stage-1-upcycling-for-post-pretraining)
+  - [Stage 2: Language Priors Router](#stage-2-language-priors-router)
 - [Main Results](#main-results)
 - [Train MoE-LPR](#train-moe-lpr)
   - [Requirements](#requirements)
-  - [Preprocessing](#preprocessing)
-  - [Training](#training)
-  - [Evaluation](#evaluation)
+  - [Data Preprocessing](#data-preprocessing)
+  - [Post-pretraining](#post-pretraining)
+  - [Language Priors Router Training](#language-priors-router-training)
 - [Bugs or Questions?](#bugs-or-questions)
 - [Citation](#citation)
 
@@ -42,120 +42,72 @@ In the following section, we provide instructions on training MoE-LPR with our c
 
 ### Requirements
 
-First, install PyTorch by following the instructions from [the official website](https://pytorch.org/). To faithfully reproduce our results, please use the correct `1.10.1` version corresponding to your platforms/CUDA versions. PyTorch version higher than `1.10.1` should also work. For example, if you use Linux and **CUDA11** ([how to check CUDA version](https://varhowto.com/check-cuda-version/)), install PyTorch by the following command,
+First, create a new conda environment through 'environment.yml'
 
 ```
-pip install torch==1.10.1+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+conda env create -f environment.yml
 ```
 
 Then try runing the following script to install other dependencies.
 
 ```bash
-pip install -r requirements.txt
-cd fairseq-cipherdaug
+cd MoE-LPR/peft
+pip install --editable ./
+
+cd MoE-LPR/transformers
 pip install --editable ./
 ```
 
-### Preprocessing
-#### Data
-All example scripts are based on the NIST Zh-En.
-All the bash scripts are sufficiently annotated for reference.
-
-Prepare the NIST Zh-En train and evaluation(MT02, MT03, MT04, MT08, MT06) data from https://catalog.ldc.upenn.edu/. 
-
-Use MT06 as the valid data. Place train, valid, test data like this:
+### Data-Preprocessing
+MoE-LPR concentrates on the post-pretraining stage. The data pipeline follows the LLaMA-Factory repo. In detail, prepare you documents to this path: MoE-LPR/LLaMA-Factory/data
+The file endswith '.jsonl' or '.json' and the content follows:
 ```
-|-- StrokeNet/data/NIST/
-    |-- source/
-        |-- train.zh-en.zh
-        |-- train.zh-en.en
-        |-- valid.zh-en.zh
-        |-- valid.zh-en.en
-    |-- dev_test/
-        | --nist02/
-            | --nist02.en
-            | --nist02.en1
-            | --nist02.en2
-            | --nist02.en3
-            | --nist02.zh
-        | --nist03/
-        ......
+{"text": your one doc}
 ```
 
-Follow the procedure below to prerpocess the data.
-
-#### Convert Chinese to Latinized stroke sequence and cipher with keys.
-
-```bash
-bash $LOC/StrokeNet/scripts/preprocess.sh
+Then add your file item in MoE-LPR/LLaMA-Factory/data/dataset_info.json.
+For example:
 ```
-This creates all parallel Latinized stroke data of cipher-1 and cipher-2 in the output dir.
-If you need to generate Latinized stroke data of your own, your file names should follow the rules mentioned in [DATA](#data) and take the following commands:
-```bash
-python $LOC/StrokeNet/fairseq-cipherdaug/strokenet/zh2letter.py \
-    -i input_file_path \
-    -o output_file_path \
-    -v vocab_file_path \
-    --workers n
+"hu_1b": {
+  "file_name": "hu_part1b_00000.jsonl",
+  "file_sha1": "e70375e28eda542a90c68213640cc371898ce184",
+  "language": "new",
+  "columns": {
+    "prompt": "text"
+  }
+},
 ```
-This generates stroke sequence corpus in output_file_path of the files in input_file_path.
-```bash
-python $LOC/StrokeNet/fairseq-cipherdaug/strokenet/cipher.py \
-    -i input_file_path \
-    -s zh -t en --workers n \
-    --keys 1 2
-```
-This generates ciphertexts with keys (1 and 2) in input_file_path.
+The 'language' item means that if the language of your data is the original language or the expanded language ('old' or 'new'). This info will be used in the stage 2 LPR training. You can use the hyper-parameter "generate_lang_mask" to control whether use this info.
 
 
-#### Conduct BPE algorithm and binarize the data.
-We use subword-nmt for BPE oprations.
-For learning and applying BPE algorithm on all relevant files at once, use the `bpe.sh`
-```
-bash /home/StrokeNet/scripts/bpe.sh
-```
-Number of BPE merge operations can be changed in bash file.
-This part could last for minutes, wait patiently for it to finish.
+### Post-pretraining
 
-Then use `multi_binarize.sh` to generate joint multilingual dictionary and binary files for fairseq to use.
+`MoE-LPR/LLaMA-Factory/scripts/stage1.sh` comes loaded with all relevant details to set hyperparameters and start training 
 ```
-bash /home/StrokeNet/scripts/multi_binarize.sh
+cd MoE-LPR/LLaMA-Factory
+bash scripts/stage1.sh
 ```
+Part of the key parameters you can adjust:
+* `--moe_num_experts`: how much experts in total. n-1 new experts are added and the rest one is the original FFN. 
+* `--topk`: how much experts are selected for each token. 
+* `--aux_loss_coef`: the weight of the load balancing loss.
 
-### Training
-
-`train.sh` comes loaded with all relevant details to set hyperparameters and start training 
-```
-bash /home/StrokeNet/scripts/train.sh
-```
-Part of the key parameters:
-```
-fairseq-train $DATABIN --save-dir ${CKPT} \
-    --lang-dict "${LANG_LIST}" --lang-pairs "${LANG_PAIRS}" \
-    --eval-lang-pairs ${EVAL_LANG_PAIRS} \
-    --task ${TASK} \                                         
-    --arch transformer --share-all-embeddings \                 # Weight tying
-    --criterion ${LOSS} --label-smoothing 0.1 \            
-    --valid-subset valid --ignore-unused-valid-subsets --batch-size-valid 200 \
-```
-For keys 1 and 2:  
-
-* `--lang-pairs` should be "zh-en,zh1-en,zh2-en". 
-* ` --eval-lang-pairs` shoule be "zh-en,". 
-* `--lang-dict` should be a file containing "zh, zh1, zh2, en".  
-* `--task` should be "translation_multi_simple_epoch_cipher --prime-src zh --prime-tgt en".  
-* `--criterion` should be "label_smoothed_cross_entropy_js --js-alpha 5 --js-warmup 500".   
-*  `--js-alpha` is the coefficient of the consistent loss, StrokeNet does [consistency learning](#frequency-aware-ciphertext-based-data-augmentation)
-
+The logs will log load balancing loss and the average scores per expert.
 See more details about the hyperparameters in our paper.
 
-
-### Evaluation
+### Language Priors Router Training
 
 ```
-bash /home/StrokeNet/scripts/eval.sh
+cd MoE-LPR/LLaMA-Factory
+bash scripts/stage2.sh
 ```
-Evaluation will be conducted on MT02, MT03, MT04, MT08, ALL OF THEM AND MT06(VALID SET). Results will be generated in the output checkpoint dir.
+Part of the key parameters you can adjust:
+* `--lpr_loss_coef`: the weight of the lpr loss.
+* `--max_samples`: how much docs are used for each language. 
+
+The logs will log lpr loss and the average selections for the original ffn.
+See more details about the hyperparameters in our paper.
+
 
 ## Bugs or Questions?
 If you have any questions related to the code or the paper, feel free to email Zhijun Wang (wzhijun21@gmail.com). If you encounter any problems when using the code, or want to report a bug, you can open an issue. Please try to specify the problem with details so we can help you better and quicker!

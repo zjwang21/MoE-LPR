@@ -1,11 +1,12 @@
 cd ../
-ROOT_DIR=/home/wangzj/aliyun/MoE-LPR/LLaMA-Factory
-MODEL_PATH=/home/nfs04/wangzj/models/Qwen1.5-1.8B
-STAGE1_PATH=/home/nfs04/wangzj/checkpoints/moe/test/checkpoint-10
-OUTPUT_DIR=/home/nfs04/wangzj/checkpoints/moe/test
+ROOT_DIR=   # yourroot/MoE-LPR/LLaMA-Factory
+MODEL_PATH=
+STAGE1_PATH=
+OUTPUT_DIR=
+DATASET=el8b,hu8b,tr8b
 
 export WANDB_DISABLED=true
-deepspeed --num_gpus 3 --master_port=9902 src/train_bash.py \
+deepspeed --num_gpus 4 --master_port=9902 src/train_bash.py \
     --deepspeed $ROOT_DIR/config/ds_config.json \
     --stage pt \
     --model_name_or_path $MODEL_PATH \
@@ -14,7 +15,7 @@ deepspeed --num_gpus 3 --master_port=9902 src/train_bash.py \
     --lpr_loss_coef 0.1 \
     --train_only_router \
     --do_train \
-    --dataset slimpajam_1b,ar_2b,de_2b,ru_2b \
+    --dataset $DATASET \
     --max_samples 50000 \
     --generate_lang_mask \
     --preprocessing_num_workers 16 \
@@ -31,4 +32,4 @@ deepspeed --num_gpus 3 --master_port=9902 src/train_bash.py \
     --learning_rate 5e-5 \
     --num_train_epochs 1.0 \
     --plot_loss \
-    --fp16
+    --bf16
