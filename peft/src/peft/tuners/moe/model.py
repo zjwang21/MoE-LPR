@@ -42,62 +42,6 @@ from .layer import MLP, MoeLayer
 
 
 class MoeModel(BaseTuner):
-    """
-    Creates Low Rank Adapter (Lora) model from a pretrained transformers model.
-
-    Args:
-        model ([`~transformers.PreTrainedModel`]): The model to be adapted.
-        config ([`LoraConfig`]): The configuration of the Lora model.
-        adapter_name (`str`): The name of the adapter, defaults to `"default"`.
-
-    Returns:
-        `torch.nn.Module`: The Lora model.
-
-    Example:
-
-        ```py
-        >>> from transformers import AutoModelForSeq2SeqLM
-        >>> from peft import LoraModel, LoraConfig
-
-        >>> config = LoraConfig(
-        ...     task_type="SEQ_2_SEQ_LM",
-        ...     r=8,
-        ...     lora_alpha=32,
-        ...     target_modules=["q", "v"],
-        ...     lora_dropout=0.01,
-        ... )
-
-        >>> model = AutoModelForSeq2SeqLM.from_pretrained("t5-base")
-        >>> lora_model = LoraModel(model, config, "default")
-        ```
-
-        ```py
-        >>> import transformers
-        >>> from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_int8_training
-
-        >>> target_modules = ["q_proj", "k_proj", "v_proj", "out_proj", "fc_in", "fc_out", "wte"]
-        >>> config = LoraConfig(
-        ...     r=4, lora_alpha=16, target_modules=target_modules, lora_dropout=0.1, bias="none", task_type="CAUSAL_LM"
-        ... )
-
-        >>> model = transformers.GPTJForCausalLM.from_pretrained(
-        ...     "kakaobrain/kogpt",
-        ...     revision="KoGPT6B-ryan1.5b-float16",  # or float32 version: revision=KoGPT6B-ryan1.5b
-        ...     pad_token_id=tokenizer.eos_token_id,
-        ...     use_cache=False,
-        ...     device_map={"": rank},
-        ...     torch_dtype=torch.float16,
-        ...     load_in_8bit=True,
-        ... )
-        >>> model = prepare_model_for_int8_training(model)
-        >>> lora_model = get_peft_model(model, config)
-        ```
-
-    **Attributes**:
-        - **model** ([`~transformers.PreTrainedModel`]) -- The model to be adapted.
-        - **peft_config** ([`LoraConfig`]): The configuration of the Lora model.
-    """
-
     prefix: str = "moe_"
 
     def __init__(self, model, config, adapter_name) -> None:

@@ -114,22 +114,11 @@ def load_single_dataset(
         num_samples = min(data_args.max_samples, len(dataset))
         dataset = dataset.select(range(num_samples))
 
-    if data_args.en_max_samples is not None and "slimpajam" in data_files[0]:
-        print("Sample en data {} lines".format(data_args.en_max_samples))
-        num_samples = data_args.en_max_samples
-        dataset = dataset.select(range(num_samples))
-
-    #print(dataset)
-    #print(dataset[0], flush=True)
-    if data_args.task == "mt":
-        print(dataset)
-        return dataset
-    else:
-        dataset = align_dataset(dataset, dataset_attr, data_args)
-        if data_args.generate_lang_mask and dataset_attr.language is not None:
-            dataset = add_language_column(dataset, dataset_attr.language)
-        print(dataset)
-        return dataset
+    dataset = align_dataset(dataset, dataset_attr, data_args)
+    if data_args.generate_lang_mask and dataset_attr.language is not None:
+        dataset = add_language_column(dataset, dataset_attr.language)
+    print(dataset)
+    return dataset
 
 
 def merge_dataset(

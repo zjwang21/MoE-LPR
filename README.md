@@ -58,14 +58,20 @@ cd MoE-LPR/transformers
 pip install --editable ./
 ```
 
-### Data-Preprocessing
-MoE-LPR concentrates on the post-pretraining stage. The data pipeline follows the LLaMA-Factory repo. In detail, prepare you documents to this path: MoE-LPR/LLaMA-Factory/data
+### Data
+MoE-LPR concentrates on the post-pretraining stage. The data pipeline follows the LLaMA-Factory repo. In detail, prepare you monolingual documents to this path: 
+```
+MoE-LPR/LLaMA-Factory/data
+```
 The file endswith '.jsonl' or '.json' and the content follows:
 ```
 {"text": your one doc}
 ```
 
-Then add your file item in MoE-LPR/LLaMA-Factory/data/dataset_info.json.
+Then add your file item in 
+```
+MoE-LPR/LLaMA-Factory/data/dataset_info.json
+```
 For example:
 ```
 "hu_1b": {
@@ -77,7 +83,7 @@ For example:
   }
 },
 ```
-The 'language' item means that if the language of your data is the original language or the expanded language ('old' or 'new'). This info will be used in the stage 2 LPR training. You can use the hyper-parameter "generate_lang_mask" to control whether use this info.
+The 'language' item means that if the language of this file is the original language or the expanded language ('old' or 'new'). This info will be used in the stage 2 LPR training. You can use the hyper-parameter "generate_lang_mask" to control whether use this info.
 
 
 ### Post-pretraining
@@ -92,7 +98,7 @@ Part of the key parameters you can adjust:
 * `--topk`: how much experts are selected for each token. 
 * `--aux_loss_coef`: the weight of the load balancing loss.
 
-The logs will log load balancing loss and the average scores per expert.
+The outputs will log load balancing loss and the average scores per expert.
 See more details about the hyperparameters in our paper.
 
 ### Language Priors Router Training
@@ -105,15 +111,33 @@ Part of the key parameters you can adjust:
 * `--lpr_loss_coef`: the weight of the lpr loss.
 * `--max_samples`: how much docs are used for each language. 
 
-The logs will log lpr loss and the average selections for the original ffn.
+The outputs will log lpr loss and the average selections for the original ffn.
 See more details about the hyperparameters in our paper.
 
+## Evaluate
+We use peft to manager the parameters.
+```
+from transformers import AutoModelForCausalLM
+peftpath = ""
+model = AutoModelForCausalLM.from_pretrained(peftpath)
+```
+We use lm-evaluation-harness to evaluate. Just add the "peft=" args to the command line.
+For example:
+```
+lm_eval --model hf \
+        --model_args pretrained$BASE_MODEL_PATH,peft=$PEFT_MODEL_PATH,dtype="float16" \
+        --tasks hellaswag_tr \
+        --device cuda:0 \
+        --num_fewshot 10 \
+        --output_path $OUTPUT_PATH \
+        --batch_size $BATCH_SIZE
+```
 
 ## Bugs or Questions?
 If you have any questions related to the code or the paper, feel free to email Zhijun Wang (wzhijun21@gmail.com). If you encounter any problems when using the code, or want to report a bug, you can open an issue. Please try to specify the problem with details so we can help you better and quicker!
 
 ## Citation
-Please cite our paper if you use StrokeNet in your work:
+Please cite our paper if you use MoE-LPR in your work:
 ```
 @inproceedings{wang2022StrokeNet,
  author = {Wang, Zhijun and Liu, Xuebo and Zhang, Min},

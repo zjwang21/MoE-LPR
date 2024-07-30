@@ -35,8 +35,7 @@ class MoeConfig(PeftConfig):
         default=2,
         metadata={
             "help": (
-                "Whether to initialize the weights of the Moe layers with their default initialization. Don't change "
-                "this setting, except if you know exactly what you're doing."
+                "The total number of experts for moe fine-tuning. If set to N, then N-1 new experts are added."
             ),
         },
     )
@@ -44,23 +43,21 @@ class MoeConfig(PeftConfig):
         default=1,
         metadata={
             "help": (
-                "Whether to initialize the weights of the Moe layers with their default initialization. Don't change "
-                "this setting, except if you know exactly what you're doing."
+                "How much experts are selected for each token."
             ),
         },
     )
     layers_to_transform: Optional[Union[List[int], int]] = field(
         default=None,
         metadata={
-            "help": "The layer indexes to transform, is this argument is specified, PEFT will transform only the layers indexes that are specified inside this list. If a single integer is passed, PEFT will transform only the layer at this index. "
-            "This only works when target_modules is a list of str."
+            "help": "Upcycling to MoE layer for which layers."
         },
     )
     save_all_params: bool = field(
         default=False,
         metadata={
             "help": (
-                "Whether to save the moe router logits for analysis."
+                "Updates and save all the parameters of MoE."
             ),
         },
     )
@@ -68,7 +65,7 @@ class MoeConfig(PeftConfig):
         default=None,
         metadata={
             "help": (
-                "Whether to save the moe router logits for analysis."
+                "The weight of the load balancing loss. Only will be used if set."
             ),
         },
     )
@@ -76,7 +73,7 @@ class MoeConfig(PeftConfig):
         default=None,
         metadata={
             "help": (
-                "Whether to save the moe router logits for analysis."
+                "The weight of the lpr loss. Only will be used if set."
             ),
         },
     )
@@ -84,4 +81,4 @@ class MoeConfig(PeftConfig):
     def __post_init__(self):
         self.peft_type = PeftType.MOE
         if self.lpr_loss_coef is not None and self.aux_loss_coef is not None:
-            assert NotImplementedError
+            raise NotImplementedError

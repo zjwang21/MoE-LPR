@@ -71,43 +71,35 @@ class MoeArguments:
     """
     moe_every_k_layers: Optional[int] = field(
         default=1,
-        metadata={"help": "The distance for moe fine-tuning."}
+        metadata={"help": "Upcycling to MoE layer every k layer."}
     )
     layers_to_moe: Optional[str] = field(
         default=None,
-        metadata={"help": "The distance for moe fine-tuning."}
+        metadata={"help": "Upcycling to MoE layer for which layers."}
     )
     moe_num_experts: Optional[int] = field(
         default=2,
-        metadata={"help": "The distance for moe fine-tuning."}
-    )
-    resume_moe_training: Optional[bool] = field(
-        default=False,
-        metadata={"help": "Whether to resume training from the last LoRA weights or create new weights after merging them."}
-    )
-    init_moe_weights: Optional[bool] = field(
-        default=False,
-        metadata={"help": "Whether to resume training from the last LoRA weights or create new weights after merging them."}
+        metadata={"help": "The total number of experts for moe fine-tuning. If set to N, then N-1 new experts are added."}
     )
     save_all_params: Optional[bool] = field(
         default=False,
-        metadata={"help": "The distance for moe fine-tuning."}
+        metadata={"help": "Updates and save all the parameters of MoE."}
     )
     train_only_router: Optional[bool] = field(
         default=False,
-        metadata={"help": "Whether to resume training from the last LoRA weights or create new weights after merging them."}
+        metadata={"help": "Whether to mark only the router trainable."}
     )
     topk: Optional[int] = field(
         default=1,
-        metadata={"help": "num heads"}
+        metadata={"help": "How much experts are selected for each token."}
     )
     aux_loss_coef: Optional[float] = field(
         default=None,
-        metadata={"help": "num heads"}
+        metadata={"help": "The weight of the load balancing loss. Only will be used if set."}
     )
     lpr_loss_coef: Optional[float] = field(
         default=None,
-        metadata={"help": "num heads"}
+        metadata={"help": "The weight of the lpr loss. Only will be used if set."}
     )
     
 @dataclass

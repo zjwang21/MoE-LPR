@@ -24,12 +24,12 @@ def init_adapter(
     r"""
     Initializes the adapters.
 
-    Support full-parameter, freeze and LoRA training.
+    Support moe-lpr, full-parameter, freeze and LoRA training.
 
     Note that the trainable parameters must be cast to float32.
     """
     if finetuning_args.finetuning_type == "moe":
-        logger.info("Fine-tuning method: MOE")
+        logger.info("Fine-tuning method: MoE")
         if model_args.adapter_name_or_path is not None:
             logger.info("Resume training from moe adapter: {}.".format(model_args.adapter_name_or_path[0]))
             moe_config = PeftConfig.from_pretrained(model_args.adapter_name_or_path[0])
@@ -42,7 +42,7 @@ def init_adapter(
                                               )
         else:
             checkpoint_to_resume = None
-            if is_trainable and checkpoint_to_resume is None: # create new lora weights while training
+            if is_trainable and checkpoint_to_resume is None: # create new moe weights while training
                 distance = finetuning_args.moe_every_k_layers
                 if distance is not None:
                     layers = list(range(distance - 1, len(model.model.layers), distance))
@@ -59,13 +59,14 @@ def init_adapter(
                     lpr_loss_coef=finetuning_args.lpr_loss_coef,
                 )
                 model = get_peft_model(model, moe_config)
-                
+
+        logger.info(moe_config)                
+        # mark all parameters trainable for naive moe.
         if finetuning_args.save_all_params:
             logger.info("Moe training and saving all params.")
             for n, p in model.named_parameters():
                 p.requires_grad = True
 
-        logger.info(moe_config)
         if finetuning_args.train_only_router:
             logger.info("Mark only the moe router trainable.")
             for n, p in model.named_parameters():
