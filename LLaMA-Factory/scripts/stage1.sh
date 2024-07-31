@@ -1,7 +1,6 @@
 cd ../
 ROOT_DIR=   # yourroot/MoE-LPR/LLaMA-Factory
 MODEL_PATH=
-CACHE_PATH=
 OUTPUT_DIR=
 DATASET=el8b,hu8b,tr8b
 
