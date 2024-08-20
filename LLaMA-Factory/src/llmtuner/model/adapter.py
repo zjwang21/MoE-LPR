@@ -71,9 +71,6 @@ def init_adapter(
             logger.info("Mark only the moe router trainable.")
             for n, p in model.named_parameters():
                 if "router" in n:
-                    if finetuning_args.init_moe_weights:
-                        print("Init moe router params......")
-                        p.data.normal_(mean=0.0, std=0.02)
                     p.requires_grad = True
                 else:
                     p.requires_grad = False

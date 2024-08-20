@@ -1,32 +1,29 @@
-## Enhancing Multilingual Capability for Large Language Models through Mixture-of-Experts with Language Priors Router
+## MoE-LPR: Multilingual Extension of Large Language Models through Mixture-of-Experts with Language Priors Routing
 
-This repository contains the code for our paper [Enhancing Multilingual Capability for Large Language Models through Mixture-of-Experts with Language Priors Router](https://arxiv.org/abs/2211.12781)
+This repository contains the code for our paper [MoE-LPR: Multilingual Extension of Large Language Models through Mixture-of-Experts with Language Priors Routing]
 ## Quick Links
 
-- [Enhancing Multilingual Capability for Large Language Models through Mixture-of-Experts with Language Priors Router](#enhancing-multilingual-capability-for-large-language-models-through-mixture-of-experts-with-language-priors-router)
+- [MoE-LPR: Multilingual Extension of Large Language Models through Mixture-of-Experts with Language Priors Routing](#moe-lpr-multilingual-extension-of-large-language-models-through-mixture-of-Experts-with-language-priors-routing)
 - [Quick Links](#quick-links)
 - [Overview](#overview)
-  - [Stage 1: Upcycling for Post-pretraining](#stage-1-upcycling-for-post-pretraining)
-  - [Stage 2: Language Priors Router](#stage-2-language-priors-router)
+  - [Stage 1: Post-pretraining with MoE](#stage-1-post-pretraining-with-moe)
+  - [Stage 2: Review with LPR](#stage-2-review-with-lpr)
 - [Main Results](#main-results)
 - [Train MoE-LPR](#train-moe-lpr)
   - [Requirements](#requirements)
   - [Data Preprocessing](#data-preprocessing)
   - [Post-pretraining](#post-pretraining)
   - [Language Priors Router Training](#language-priors-router-training)
-- [Bugs or Questions?](#bugs-or-questions)
-- [Citation](#citation)
 
 ## Overview
-We propose a strategy called MoE-LPR (Mixture-of-Experts with Language Priors Router) to enhance multilingual capability of LLMs. MoE-LPR employs a two-strategy training approach. First, we utilize the Mixture-of-Experts (MoE) architecture to upcycle the model, freezing all the original parameters and adding new experts. We post-pretrain the model without any original language data to improve the abilities of the expanded languages. Then, we incorporate a language priors router using very small amounts of data to recover the abilities of the original languages. We evaluate our model on multiple benchmarks and the results indicate that our method outperforms other post-pretraining methods. Our analysis shows that freezing the original parameters does not limit the model’s learning ability while preserving the knowledge of the original languages. Additionally, the language priors router successfully enables the model to utilize the knowledge of various languages within the parameters. Furthermore, with the MoE architecture, our method can maintain the same inference overhead while continuously increasing the total number of model parameters. Extensive experiments demonstrate that MoE-LPR effectively helps LLMs improve expanded languages and preserves proficiency in the original languages with superior scalability.
-
-### Stage 1: Upcycling for Post-pretraining
+In this paper, we propose a method called MoE-LPR (Mixture-of-Experts with Language Priors Routing). MoE-LPR employs a two-stage training approach to enhance the multilingual capability. First, the model is post-pretrained into a Mixture-of-Experts (MoE) architecture by upcycling, where all the original parameters are frozen and new experts are added. In this stage, we focus improving the ability on expanded languages, without using any original language data. Then, the model reviews the knowledge of the original languages with replay data amounting to less than 1% of post-pretraining, where we incorporate language priors routing to better recover the abilities of the original languages. Evaluations on multiple benchmarks show that MoE-LPR outperforms other postpretraining methods. Freezing original parameters preserves original language knowledge while adding new experts preserves the learning ability. Reviewing with LPR enables effective utilization of multilingual knowledge within the parameters. Additionally, the MoE architecture maintains the same inference overhead while increasing total model parameters. Extensive experiments demonstrate MoE-LPR’s effectiveness in improving expanded languages and preserving original language proficiency with superior scalability.
+### Stage 1: Post-pretraining with MoE
 As shown in the Figure, we upcycle the dense model to the MoE architecture. To enhance the MoE model’s multilingual capabilities while preserving its performance on the originally supported languages, we freeze the parameters of the original dense model within the MoE during post-pretraining on the expanded languages corpus. This approach retains the model’s existing knowledge and only updates the parameters of the newly added experts and router. These freezing parameters preserve the knowledge of not only the original languages but also the expanded language. The router can freely choose new experts or frozen experts, corresponding to storing new knowledge or reusing old knowledge.
 <div align="center">
 <img src=figures/model.png width=90% height=90% />
 </div>
 
-### Stage 2: Language Priors Router
+### Stage 2: Review with LPR
 After post-pretraining on the expanded languages corpus, the router, which has only been trained on the expanded languages data and not on the original languages corpus used for the dense model, may incorrectly assign experts for languages previously supported. This misallocation can lead to severe catastrophic forgetting in the MoE model. To retain the model's original capabilities while not affecting the performance on the extended languages, we attempt to train only the router with language priors. The number of the router parameters accounts for a negligible proportion. This language priors are that all the original languages tokens should be routed to the freezing expert during stage 1 while all the expanded languages tokens should keep their routing unchanged in this stage. We incorporate the language priors through a cross-entropy loss guided by the langauges of the trained tokens. Details are referred in our paper.
 
 ## Main Results
@@ -131,19 +128,4 @@ lm_eval --model hf \
         --num_fewshot 10 \
         --output_path $OUTPUT_PATH \
         --batch_size $BATCH_SIZE
-```
-
-## Bugs or Questions?
-If you have any questions related to the code or the paper, feel free to email Zhijun Wang (wzhijun21@gmail.com). If you encounter any problems when using the code, or want to report a bug, you can open an issue. Please try to specify the problem with details so we can help you better and quicker!
-
-## Citation
-Please cite our paper if you use MoE-LPR in your work:
-```
-@inproceedings{wang2022StrokeNet,
- author = {Wang, Zhijun and Liu, Xuebo and Zhang, Min},
- booktitle = {Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing},
- title = {Breaking the Representation Bottleneck of Chinese Characters: Neural Machine Translation with Stroke Sequence Modeling},
- url = {https://arxiv.org/abs/2211.12781}, 
- year = {2022}
-}
 ```
