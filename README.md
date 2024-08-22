@@ -14,6 +14,9 @@ This repository contains the code for our paper [MoE-LPR: Multilingual Extension
   - [Data Preprocessing](#data-preprocessing)
   - [Post-pretraining](#post-pretraining)
   - [Language Priors Router Training](#language-priors-router-training)
+- [Bugs or Questions?](#bugs-or-questions)
+- [Citation](#citation)
+
 
 ## Overview
 In this paper, we propose a method called MoE-LPR (Mixture-of-Experts with Language Priors Routing). MoE-LPR employs a two-stage training approach to enhance the multilingual capability. First, the model is post-pretrained into a Mixture-of-Experts (MoE) architecture by upcycling, where all the original parameters are frozen and new experts are added. In this stage, we focus improving the ability on expanded languages, without using any original language data. Then, the model reviews the knowledge of the original languages with replay data amounting to less than 1% of post-pretraining, where we incorporate language priors routing to better recover the abilities of the original languages. Evaluations on multiple benchmarks show that MoE-LPR outperforms other postpretraining methods. Freezing original parameters preserves original language knowledge while adding new experts preserves the learning ability. Reviewing with LPR enables effective utilization of multilingual knowledge within the parameters. Additionally, the MoE architecture maintains the same inference overhead while increasing total model parameters. Extensive experiments demonstrate MoE-LPR’s effectiveness in improving expanded languages and preserving original language proficiency with superior scalability.
