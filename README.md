@@ -1,6 +1,6 @@
 ## MoE-LPR: Multilingual Extension of Large Language Models through Mixture-of-Experts with Language Priors Routing
 
-This repository contains the code for our paper [MoE-LPR: Multilingual Extension of Large Language Models through Mixture-of-Experts with Language Priors Routing](https://github.com/zjwang21/MoE-LPR.git)
+This repository contains the code for our paper [MoE-LPR: Multilingual Extension of Large Language Models through Mixture-of-Experts with Language Priors Routing](https://arxiv.org/abs/2408.11396)
 ## Quick Links
 
 - [MoE-LPR: Multilingual Extension of Large Language Models through Mixture-of-Experts with Language Priors Routing](#moe-lpr-multilingual-extension-of-large-language-models-through-mixture-of-Experts-with-language-priors-routing)
@@ -138,7 +138,7 @@ Please cite our paper if you use MoE-LPR in your work:
 ```
 @inproceedings{zhou2024MoE-LPR,
  author = {Zhou, Hao and Wang, Zhijun and Huang, Shujian and Huang, Xin and Han, Xue and Feng, Junlan and Deng, Chao and Luo, Weihua and Chen, Jiajun},
- journal={arXiv preprint arXiv:2408.11396},
+ journal = {arXiv preprint arXiv:2408.11396},
  title = {MoE-LPR: Multilingual Extension of Large Language Models through Mixture-of-Experts with Language Priors Routing},
  url = {https://arxiv.org/abs/2408.11396}, 
  year = {2024}
